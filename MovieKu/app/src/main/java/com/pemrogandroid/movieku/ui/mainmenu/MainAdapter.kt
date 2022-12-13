@@ -15,7 +15,8 @@ import java.util.HashSet
 
 class MainAdapter(
     internal var movieList: List<Movie>,
-    internal var context: Context
+    internal var context: Context,
+    var listener: MainActivity.RecyclerItemListener
 ) : RecyclerView.Adapter<MoviesHolder>() {
     // HashMap to keep track of which items were selected for deletion
     val selectedMovies = HashSet<Movie>()
@@ -23,7 +24,9 @@ class MainAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MoviesHolder {
         val binding = ItemMovieMainBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         val viewHolder = MoviesHolder(binding)
-
+        binding.root.setOnClickListener { v ->
+            listener.onItemClick(v, viewHolder.absoluteAdapterPosition)
+        }
         return viewHolder
     }
 

@@ -28,7 +28,6 @@ class SearchActivity : AppCompatActivity() {
     private val compositeDisposable = CompositeDisposable()
 
     private lateinit var query: String
-    private var dataSource = RemoteDataSource()
 
     companion object {
         val SEARCH_QUERY = "searchQuery"

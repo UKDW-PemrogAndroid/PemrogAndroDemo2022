@@ -28,6 +28,8 @@
                   android:exported="false"/>
         <activity android:name=".ui.addmovie.AddMovieActivity"
                   android:exported="false"/>
+        <activity android:name=".ui.moviedetails.MovieDetailsActivity"
+                  android:exported="false"/>
     </application>
 
 </manifest>

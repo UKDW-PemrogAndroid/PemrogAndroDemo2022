@@ -18,6 +18,7 @@ import com.pemrogandroid.movieku.databinding.ActivityMainBinding
 import com.pemrogandroid.movieku.model.Movie
 import com.pemrogandroid.movieku.repository.LocalDataSource
 import com.pemrogandroid.movieku.ui.addmovie.AddMovieActivity
+import com.pemrogandroid.movieku.ui.moviedetails.MovieDetailsActivity
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.annotations.NonNull
@@ -103,7 +104,7 @@ class MainActivity : AppCompatActivity() {
             binding.moviesRecyclerview.visibility = INVISIBLE
             binding.noMoviesLayout.visibility = VISIBLE
         } else {
-            adapter = MainAdapter(movieList, this@MainActivity)
+            adapter = MainAdapter(movieList, this@MainActivity, itemListener)
             binding.moviesRecyclerview.adapter = adapter
 
             binding.moviesRecyclerview.visibility = VISIBLE
@@ -141,5 +142,19 @@ class MainActivity : AppCompatActivity() {
         }
 
         return super.onOptionsItemSelected(item)
+    }
+
+    internal var itemListener: RecyclerItemListener = object : RecyclerItemListener {
+        override fun onItemClick(v: View, position: Int) {
+            val movie = adapter!!.getItemAtPosition(position)
+            val intent = Intent(this@MainActivity, MovieDetailsActivity::class.java)
+            intent.putExtra(EXTRA_ID, movie.id)
+            startActivity(intent)
+            Log.i(TAG, "RecyclerItemListener onItemClick: " + movie.id + " " + movie.title)
+        }
+    }
+
+    interface RecyclerItemListener {
+        fun onItemClick(v: View, position: Int)
     }
 }

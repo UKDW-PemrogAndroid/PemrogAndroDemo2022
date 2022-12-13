@@ -13,21 +13,20 @@ import com.pemrogandroid.movieku.repository.LocalDataSource
 import com.pemrogandroid.movieku.ui.search.SearchActivity
 import com.squareup.picasso.Picasso
 
-class AddMovieActivity : AppCompatActivity() {
+class AddMovieActivity : AppCompatActivity(),
+    AddMovieContract.ViewInterface {
 
     lateinit var binding: ActivityAddMovieBinding
 
-    private lateinit var dataSource: LocalDataSource
-    private lateinit var activitySearchLaucher: ActivityResultLauncher<Intent>
-
     private lateinit var activitySearchLauncher: ActivityResultLauncher<Intent>
+    private lateinit var addMoviePresenter: AddMovieContract.PresenterInterface
     val selectedMovies = Movie()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityAddMovieBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        dataSource = LocalDataSource(application)
+        //dependecy injection
+        addMoviePresenter = AddMoviePresenter(this, LocalDataSource(application))
 
         activitySearchLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == RESULT_OK) {
@@ -51,7 +50,13 @@ class AddMovieActivity : AppCompatActivity() {
         })
 
         binding.btnAddMovie.setOnClickListener({
-            onClickAddMovie()
+            //addMovie onClick
+            addMoviePresenter.addMovie(
+                selectedMovies.id!!,
+                selectedMovies.title!!,
+                selectedMovies.releaseDate!!,
+                selectedMovies.posterPath!!
+            )
         })
     }
 
@@ -63,21 +68,16 @@ class AddMovieActivity : AppCompatActivity() {
         activitySearchLauncher.launch(intent)
     }
 
-    //addMovie onClick
-    fun onClickAddMovie() {
-        if (selectedMovies.id == null) {
-            Toast.makeText(this@AddMovieActivity, "Movie belum dipilih", Toast.LENGTH_LONG).show()
-        } else {
-            val movie = Movie(
-                id = selectedMovies.id,
-                title = selectedMovies.title,
-                releaseDate = selectedMovies.releaseDate,
-                posterPath = selectedMovies.posterPath
-            )
-            dataSource.insert(movie)
+    override fun returnToMain() {
+        setResult(RESULT_OK)
+        finish()
+    }
 
-            setResult(RESULT_OK)
-            finish()
-        }
+    override fun displayMessage(message: String) {
+        Toast.makeText(this@AddMovieActivity, message, Toast.LENGTH_LONG).show()
+    }
+
+    override fun displayError(meesage: String) {
+        displayMessage(meesage)
     }
 }
