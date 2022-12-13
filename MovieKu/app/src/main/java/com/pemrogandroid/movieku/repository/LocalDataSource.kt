@@ -1,19 +1,20 @@
 package com.pemrogandroid.movieku.repository
 
 import android.app.Application
+import com.pemrogandroid.movieku.MovieKuApp
 import com.pemrogandroid.movieku.db.LocalDatabase
 import com.pemrogandroid.movieku.db.MovieDao
 import com.pemrogandroid.movieku.model.Movie
 import io.reactivex.Observable
 import kotlin.concurrent.thread
 
-open class LocalDataSource(application: Application) {
+open class LocalDataSource {
 
     private val movieDao: MovieDao
     open val allMovies: Observable<List<Movie>>
 
     init {
-        val db = LocalDatabase.getInstance(application)
+        val db = LocalDatabase.getInstance(MovieKuApp.instance)
         movieDao = db.movieDao()
         allMovies = movieDao.all
     }

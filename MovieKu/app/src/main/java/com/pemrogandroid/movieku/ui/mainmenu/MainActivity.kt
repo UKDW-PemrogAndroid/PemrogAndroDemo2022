@@ -62,7 +62,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        dataSource = LocalDataSource(application)
+        dataSource = LocalDataSource()
         getMyMoviesList()
     }
 

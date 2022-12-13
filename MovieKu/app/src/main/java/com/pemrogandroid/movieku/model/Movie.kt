@@ -80,6 +80,11 @@ open class Movie {
         this.posterPath = posterPath
     }
 
+    constructor(title: String, releaseDate: String) {
+        this.title = title
+        this.releaseDate = releaseDate
+    }
+
     constructor(
         id: Int?,
         voteCount: Int?,
@@ -96,7 +101,7 @@ open class Movie {
         overview: String?,
         releaseDate: String?,
         watched: Boolean
-    ) {
+    ) : super() {
         this.id = id
         this.voteCount = voteCount
         this.video = video

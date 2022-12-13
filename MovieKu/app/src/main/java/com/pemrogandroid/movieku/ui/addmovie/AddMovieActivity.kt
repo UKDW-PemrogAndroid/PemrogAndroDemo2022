@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProviders
 import com.pemrogandroid.movieku.databinding.ActivityAddMovieBinding
 import com.pemrogandroid.movieku.model.Movie
 import com.pemrogandroid.movieku.network.RetrofitClient.TMDB_IMAGEURL
@@ -13,20 +14,19 @@ import com.pemrogandroid.movieku.repository.LocalDataSource
 import com.pemrogandroid.movieku.ui.search.SearchActivity
 import com.squareup.picasso.Picasso
 
-class AddMovieActivity : AppCompatActivity(),
-    AddMovieContract.ViewInterface {
+class AddMovieActivity : AppCompatActivity() {
 
     lateinit var binding: ActivityAddMovieBinding
 
     private lateinit var activitySearchLauncher: ActivityResultLauncher<Intent>
-    private lateinit var addMoviePresenter: AddMovieContract.PresenterInterface
+    private lateinit var addViewModel: AddViewModel
     val selectedMovies = Movie()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityAddMovieBinding.inflate(layoutInflater)
         setContentView(binding.root)
         //dependecy injection
-        addMoviePresenter = AddMoviePresenter(this, LocalDataSource(application))
+        addViewModel = ViewModelProviders.of(this).get(AddViewModel::class.java)
 
         activitySearchLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == RESULT_OK) {
@@ -50,13 +50,18 @@ class AddMovieActivity : AppCompatActivity(),
         })
 
         binding.btnAddMovie.setOnClickListener({
-            //addMovie onClick
-            addMoviePresenter.addMovie(
-                selectedMovies.id!!,
-                selectedMovies.title!!,
-                selectedMovies.releaseDate!!,
-                selectedMovies.posterPath!!
-            )
+            if (selectedMovies.id == null) {
+                displayError("Movie belum dipilih")
+            } else {
+                //addMovie onClick
+                addViewModel.addMovie(
+                    selectedMovies.id!!,
+                    selectedMovies.title!!,
+                    selectedMovies.releaseDate!!,
+                    selectedMovies.posterPath!!
+                )
+                returnToMain()
+            }
         })
     }
 
@@ -68,16 +73,16 @@ class AddMovieActivity : AppCompatActivity(),
         activitySearchLauncher.launch(intent)
     }
 
-    override fun returnToMain() {
+    fun returnToMain() {
         setResult(RESULT_OK)
         finish()
     }
 
-    override fun displayMessage(message: String) {
+    fun displayMessage(message: String) {
         Toast.makeText(this@AddMovieActivity, message, Toast.LENGTH_LONG).show()
     }
 
-    override fun displayError(meesage: String) {
+    fun displayError(meesage: String) {
         displayMessage(meesage)
     }
 }

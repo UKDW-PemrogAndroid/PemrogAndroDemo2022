@@ -9,8 +9,10 @@ import android.view.View.INVISIBLE
 import android.view.View.VISIBLE
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.pemrogandroid.movieku.databinding.ActivitySearchMovieBinding
+import com.pemrogandroid.movieku.model.Movie
 import com.pemrogandroid.movieku.model.TmdbResponse
 import com.pemrogandroid.movieku.repository.RemoteDataSource
 import io.reactivex.Observable
@@ -24,10 +26,8 @@ class SearchActivity : AppCompatActivity() {
 
     lateinit var binding: ActivitySearchMovieBinding
     private lateinit var adapter: SearchAdapter
-    private var remoteDataSource = RemoteDataSource()
-    private val compositeDisposable = CompositeDisposable()
-
     private lateinit var query: String
+    private lateinit var searchViewModel: SearchViewModel
 
     companion object {
         val SEARCH_QUERY = "searchQuery"
@@ -41,14 +41,14 @@ class SearchActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivitySearchMovieBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        query = intent.getStringExtra(SEARCH_QUERY)!!
+        searchViewModel = ViewModelProviders.of(this).get(SearchViewModel::class.java)
 
+        query = intent.getStringExtra(SEARCH_QUERY)!!
         binding.searchResultsRecyclerview.layoutManager = LinearLayoutManager(this)
     }
 
     override fun onStop() {
         super.onStop()
-        compositeDisposable.clear()
     }
 
     override fun onStart() {
@@ -57,50 +57,23 @@ class SearchActivity : AppCompatActivity() {
         getSearchResult(query)
     }
 
-    val searchResultsObservable: (String) -> Observable<TmdbResponse> =
-        { query ->
-            remoteDataSource.searchResultObserveable(query)
-        }
-
-    val resultObserver: DisposableObserver<TmdbResponse>
-        get() = object : DisposableObserver<TmdbResponse>()  {
-            override fun onNext(response: TmdbResponse) {
-                Log.i(TAG, "resultObserver: "+response.totalResults)
-                displayResult(response)
-            }
-
-            override fun onError(e: Throwable) {
-                Log.d(TAG, "onError: "+e.message)
-                Toast.makeText(this@SearchActivity, "Error fetching Movie Data", Toast.LENGTH_LONG).show()
-            }
-
-            override fun onComplete() {
-                Log.d(TAG, "Completed")
-            }
-        }
-
     private fun getSearchResult(query: String) {
-        val searchResultDisposable = searchResultsObservable(query)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribeWith(resultObserver)
-
-        compositeDisposable.add(searchResultDisposable)
+        searchViewModel.searchMovie(query).observe(this,{movies->
+            displayResult(movies!!)
+        })
     }
 
-    fun displayResult(tmdbResponse: TmdbResponse) {
+    fun displayResult(movies : List<Movie>) {
         binding.progressBar.visibility = INVISIBLE
-
-        if (tmdbResponse.totalResults == null || tmdbResponse.totalResults == 0) {
+        if (movies == null) {
             binding.searchResultsRecyclerview.visibility = INVISIBLE
             binding.noMoviesTextview.visibility = VISIBLE
         } else {
             adapter = SearchAdapter(
-                tmdbResponse.results
-                    ?: arrayListOf(), this@SearchActivity, itemListener
+                movies,
+                this@SearchActivity, itemListener
             )
             binding.searchResultsRecyclerview.adapter = adapter
-
             binding.searchResultsRecyclerview.visibility = VISIBLE
             binding.noMoviesTextview.visibility = INVISIBLE
         }
